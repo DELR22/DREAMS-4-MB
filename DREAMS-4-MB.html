@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DREAMS-4-MB — Mood Board Workflow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ── */
+    :root {
+      --font-serif: 'DM Serif Display', serif;
+      --font-mono: 'DM Mono', monospace;
+      --bg-app:       #f0f4f3;
+      --bg-sidebar:   #ffffff;
+      --bg-canvas:    #ffffff;
+      --border:       #e5e7eb;
+      --border-light: #f3f4f6;
+      --text-primary: #111111;
+      --text-body:    #374151;
+      --text-muted:   #9ca3af;
+      --text-ghost:   #d1d5db;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: var(--font-mono); background: var(--bg-app); color: var(--text-body); font-size: 11px; line-height: 1.5; }
+    input, textarea, select, button { font-family: var(--font-mono); }
+    input:focus, textarea:focus, select:focus { outline: none; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #e5e7eb; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scaleIn { from { transform:scale(0) translate(-50%,-50%); } to { transform:scale(1) translate(-50%,-50%); } }
+    @keyframes flashBg { 0%,100% { background: #fff; } 40% { background: var(--flash-color, #f3f4f6); } }
+
+    /* ── App Shell ── */
+    #app { display:flex; flex-direction:column; height:100vh; width:100vw; overflow:hidden; }
+
+    /* ── Nav Bar ── */
+    #nav-bar {
+      height:44px; background:#fff; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; padding:0 24px;
+      justify-content:space-between; flex-shrink:0; z-index:100;
+    }
+    .wordmark { font-family:var(--font-serif); font-size:16px; color:#111; }
+    .nav-tabs { display:flex; gap:8px; }
+    .tab-btn {
+      font-family:var(--font-mono); font-size:10px; text-transform:uppercase;
+      letter-spacing:0.1em; padding:6px 14px; border:1px solid var(--border);
+      background:transparent; cursor:pointer; color:var(--text-muted); transition:all 0.15s;
+    }
+    .tab-btn.active { background:#111; color:#fff; border-color:#111; }
+    #session-indicator { font-family:var(--font-mono); font-size:9px; color:var(--text-muted); letter-spacing:0.1em; }
+
+    /* ── EP Warning Banner ── */
+    #ep-warning {
+      display:none; width:100%; height:32px; background:rgba(245,158,11,0.08);
+      border-bottom:1px solid #f59e0b; font-family:var(--font-mono);
+      font-size:9px; color:#92400e; text-align:center; padding:0 20px;
+      align-items:center; justify-content:center; flex-shrink:0; letter-spacing:0.05em;
+    }
+
+    /* ── Stage Container ── */
+    #stage-container { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+    #stage-dreams, #stage-ep { display:flex; height:100%; width:100%; }
+    #stage-ep { display:none; }
+
+    /* ── Shared Sidebar ── */
+    .sidebar {
+      width:268px; min-width:268px; background:#fff; border-right:1px solid var(--border);
+      display:flex; flex-direction:column; padding:22px 16px; overflow-y:auto; flex-shrink:0;
+    }
+    .brand-title { font-family:var(--font-serif); font-size:26px; color:#111; letter-spacing:0.02em; line-height:1; }
+    .brand-sub   { font-size:9px; color:var(--text-muted); letter-spacing:0.14em; text-transform:uppercase; margin-top:5px; }
+    .brand-stage { font-size:8px; color:var(--text-ghost); font-style:italic; margin-top:3px; }
+    .sep         { height:1px; background:var(--border-light); margin:14px 0; }
+    .section-label { font-size:8px; color:var(--text-muted); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:9px; }
+    .group-label { font-size:8px; color:var(--text-ghost); letter-spacing:0.12em; text-transform:uppercase; margin:6px 0 5px; }
+    .sidebar-spacer { flex:1; min-height:14px; }
+    .sidebar-footer { font-size:9px; color:var(--text-muted); font-style:italic; line-height:1.6; margin-top:14px; }
+
+    /* ── Sidebar Buttons ── */
+    .sidebar-btn {
+      width:100%; padding:8px 12px; background:#fff; border:1px solid var(--border);
+      color:var(--text-body); font-family:var(--font-mono); font-size:11px;
+      text-align:left; letter-spacing:0.03em; cursor:pointer;
+      display:flex; align-items:center; gap:8px; transition:all 0.15s; margin-bottom:6px; flex-shrink:0;
+    }
+    .sidebar-btn:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+
+    /* ── Type Dot ── */
+    .type-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; display:inline-block; }
+
+    /* ── Inline Input ── */
+    .inline-input-group { display:flex; flex-direction:column; gap:5px; margin-bottom:8px; animation:fadeIn 0.15s ease; }
+    .inline-input { width:100%; border:1px solid #d1d5db; padding:7px 10px; font-family:var(--font-mono); font-size:11px; color:#111; background:#fff; }
+    .inline-input-actions { display:flex; gap:5px; }
+    .confirm-btn { flex:1; padding:5px; border:1px solid #d1d5db; background:#111; color:#fff; font-family:var(--font-mono); font-size:10px; cursor:pointer; }
+    .cancel-btn  { flex:1; padding:5px; border:1px solid var(--border); background:#fff; color:var(--text-muted); font-family:var(--font-mono); font-size:10px; cursor:pointer; }
+
+    /* ── Pills ── */
+    .pill { display:inline-block; font-size:10px; padding:3px 8px; border:1px solid var(--border); background:#f3f4f6; color:var(--text-muted); letter-spacing:0.05em; margin:2px; }
+    .pill.place-pill { background:#fff; color:#111; border-color:#374151; }
+
+    /* ── Legend ── */
+    #legend { display:grid; grid-template-columns:1fr 1fr; column-gap:8px; }
+    .legend-row { display:flex; align-items:center; gap:7px; font-size:9px; color:var(--text-muted); letter-spacing:0.05em; margin-bottom:4px; }
+
+    /* ── Dreams Main ── */
+    #dreams-main { flex:1; display:flex; align-items:center; justify-content:center; background:var(--bg-app); overflow:auto; }
+    #canvas-row { display:flex; align-items:flex-start; gap:28px; }
+    #canvas-wrapper { display:flex; flex-direction:column; align-items:flex-start; padding:24px 0 24px 24px; }
+    #canvas-label { font-size:9px; color:var(--text-muted); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
+    #dreams-canvas {
+      width:840px; height:580px; position:relative; background:var(--bg-canvas);
+      border:1px solid var(--border);
+      overflow:visible; flex-shrink:0;
+    }
+    #side-panel {
+      width:250px; flex-shrink:0; margin-top:24px;
+      display:flex; flex-direction:column; gap:16px;
+      max-height:580px; overflow-y:auto;
+    }
+    .side-card {
+      background:#fff; border:1px solid var(--border); padding:16px 18px;
+      font-size:10px; color:var(--text-body); line-height:1.65; flex-shrink:0;
+    }
+    .side-card h3 { font-family:var(--font-serif); font-weight:400; font-size:14px; color:#111; margin-bottom:10px; }
+    .side-card p { margin-bottom:10px; }
+    .side-card p:last-child { margin-bottom:0; }
+    .side-card strong { color:#111; font-weight:500; }
+    #canvas-hint { font-size:9px; color:var(--text-ghost); letter-spacing:0.1em; margin-top:6px; align-self:flex-end; }
+
+    /* ── Plane Axes & Labels ── */
+    #plane-axes { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+    .axis-corner-label {
+      position:absolute; font-family:var(--font-mono); font-size:8px;
+      color:var(--text-muted); letter-spacing:0.06em; pointer-events:none; z-index:2; white-space:nowrap;
+    }
+    .axis-direction-label {
+      position:absolute; font-family:var(--font-mono); font-size:8px; letter-spacing:0.1em;
+      color:var(--text-muted); pointer-events:none; z-index:2; text-transform:uppercase;
+    }
+
+    /* ── Empty State ── */
+    #canvas-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:84px; gap:10px; pointer-events:none; z-index:3; }
+    .empty-title { font-family:var(--font-serif); font-size:22px; color:var(--text-ghost); text-align:center; max-width:400px; line-height:1.5; font-style:italic; }
+    #empty-feeling { color:var(--text-muted); font-style:normal; }
+    .empty-sub { font-family:var(--font-mono); font-size:10px; color:var(--text-ghost); letter-spacing:0.08em; }
+
+    /* ── Circles ── */
+    .circle {
+      position:absolute; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; cursor:grab; user-select:none;
+      transition:box-shadow 0.15s; animation:scaleIn 0.2s ease;
+      transform:translate(-50%,-50%); z-index:4;
+    }
+    .circle.selected { box-shadow:0 0 0 3px var(--glow-color); }
+    .circle-label {
+      text-align:center; word-break:break-word; pointer-events:none;
+      color:#111; line-height:1.4; padding:12%;
+    }
+    .resize-handle {
+      position:absolute; width:10px; height:10px; opacity:0.8;
+      cursor:se-resize; bottom:4px; right:4px; display:none;
+    }
+    .circle.selected .resize-handle { display:block; }
+    #circle-editor {
+      position:absolute; display:none; z-index:20;
+      background:transparent; border:none; resize:none; overflow:hidden;
+      font-family:var(--font-mono); color:#111; line-height:1.4;
+      text-align:center; word-break:break-word; white-space:pre-wrap;
+      padding:10px; box-sizing:border-box; cursor:text;
+    }
+    #circle-editor:focus { outline:none; }
+    .delete-btn {
+      position:absolute; top:-10px; right:-10px; width:20px; height:20px;
+      border-radius:50%; background:#fff; border:1px solid var(--border);
+      color:var(--text-muted); font-size:11px; display:none;
+      align-items:center; justify-content:center; cursor:pointer;
+      z-index:30; line-height:1; padding:0;
+    }
+    .circle:hover .delete-btn, .circle.selected .delete-btn { display:flex; }
+    .delete-btn:hover { color:#ef4444; border-color:#fca5a5; }
+
+    /* ── Magnitude Panel ── */
+    #magnitude-panel { display:flex; flex-direction:column; gap:6px; }
+    .magnitude-chip {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      border:1px solid var(--border); background:#fff; padding:6px 9px;
+      font-family:var(--font-mono); font-size:9px; color:var(--text-body); letter-spacing:0.03em;
+    }
+    .magnitude-chip .chip-left { display:flex; align-items:center; gap:6px; min-width:0; }
+    .magnitude-chip .chip-left span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .magnitude-chip .chip-right { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .magnitude-chip .im-value { font-weight:500; }
+    .magnitude-chip .pct-value { font-weight:500; color:var(--text-muted); }
+    .magnitude-empty { font-size:9px; color:var(--text-ghost); font-style:italic; }
+    .im-total-row {
+      margin-top:2px; padding-top:8px;
+      border-top:1px solid var(--border-light); font-size:9px;
+      color:var(--text-body); letter-spacing:0.05em;
+    }
+    .im-total-row strong { color:#111; font-size:10.5px; }
+
+    /* ── EP Main ── */
+    #ep-main { flex:1; overflow-y:auto; background:var(--bg-app); padding:28px 36px; }
+    .ep-heading { font-family:var(--font-serif); font-size:22px; color:#111; margin-bottom:4px; }
+    .ep-subhead { font-size:10px; color:var(--text-muted); margin-bottom:16px; }
+
+    /* ── EP Cards ── */
+    .ep-card {
+      padding:16px 18px; margin-bottom:0;
+      animation:fadeIn 0.2s ease both;
+    }
+    .card-top { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+    .card-type-label { font-size:11px; font-weight:500; letter-spacing:0.05em; text-transform:uppercase; }
+    .facilitator-cue { font-size:9px; font-style:italic; color:var(--text-muted); margin-bottom:10px; }
+    .ep-textarea {
+      width:100%; border:1px solid var(--border); padding:8px 10px;
+      font-family:var(--font-mono); font-size:11px; background:#fff;
+      color:var(--text-body); resize:vertical; line-height:1.5; transition:border-color 0.15s;
+    }
+
+    /* ── EP Data Status ── */
+    .data-status-row { display:flex; gap:7px; align-items:center; font-size:9px; letter-spacing:0.05em; margin-bottom:5px; }
+    .status-type-label { flex:1; color:var(--text-body); }
+    .status-count { color:var(--text-muted); }
+    #ep-place-display { font-size:10px; color:#111; margin-bottom:6px; }
+
+    /* ── EP Button Row ── */
+    .ep-btn-row { display:flex; gap:12px; margin-top:8px; margin-bottom:20px; }
+    #summary-btn, #generate-ep-btn { background:#111; color:#fff; border:none; padding:10px 22px; font-family:var(--font-mono); font-size:11px; cursor:pointer; letter-spacing:0.05em; transition:all 0.15s; }
+    #summary-btn:hover, #generate-ep-btn:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+    #ep-prompt-colored { font-family:var(--font-mono); font-size:12px; line-height:2; padding:14px 16px; background:var(--bg-app); border:1px solid var(--border-light); margin-bottom:12px; white-space:pre-wrap; }
+    #ep-prompt-editable { width:100%; border:1px solid var(--border); padding:10px 12px; font-family:var(--font-mono); font-size:11px; color:var(--text-body); resize:vertical; line-height:1.7; min-height:96px; background:#fff; transition:border-color 0.15s; }
+    #ep-prompt-editable:focus { border-color:#111; }
+
+    /* ── Output Panels ── */
+    .output-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .output-heading { font-family:var(--font-serif); font-size:16px; color:#111; }
+
+    /* ── Selects ── */
+    .ep-select { width:100%; border:1px solid var(--border); padding:6px 10px; font-family:var(--font-mono); font-size:11px; background:#fff; color:var(--text-body); margin-bottom:8px; }
+
+    /* ── Name display ── */
+    #name-display, #ep-name-display { font-family:var(--font-serif); font-size:16px; color:#374151; letter-spacing:0.04em; text-align:center; padding:2px 0; word-break:break-word; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- NAV BAR -->
+  <div id="nav-bar">
+    <span class="wordmark">DREAMS-4-MB</span>
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-stage="dreams">Stage 1 · DREAMS</button>
+      <button class="tab-btn" data-stage="ep">Stage 2 · Empathic Prompting</button>
+    </div>
+    <span id="session-indicator"></span>
+  </div>
+
+  <!-- EP WARNING BANNER -->
+  <div id="ep-warning">⚠ Complete your DREAMS canvas first to pre-fill this form.</div>
+
+  <!-- STAGE CONTAINER -->
+  <div id="stage-container">
+
+    <!-- ── STAGE 1: DREAMS ── -->
+    <div id="stage-dreams">
+
+      <!-- Sidebar -->
+      <div class="sidebar" id="dreams-sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-title">DREAMS</div>
+          <div class="brand-sub">Mood Board Mapping</div>
+          <div class="brand-stage">Stage 1 of 2</div>
+        </div>
+        <div class="sep"></div>
+
+        <!-- Session Setup -->
+        <div class="section-label">Session Setup</div>
+        <button class="sidebar-btn" id="btn-feelings">Enter Feelings</button>
+        <div class="inline-input-group" id="feelings-input-group" style="display:none">
+          <input class="inline-input" id="feelings-input" type="text" placeholder="calm, grounded, open…" />
+          <div class="inline-input-actions">
+            <button class="confirm-btn" id="feelings-confirm">Confirm</button>
+            <button class="cancel-btn" id="feelings-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="feelings-pills" style="margin-bottom:8px"></div>
+
+        <button class="sidebar-btn" id="btn-place">Enter Space</button>
+        <div class="inline-input-group" id="place-input-group" style="display:none">
+          <input class="inline-input" id="place-input" type="text" placeholder="reading room, spa bathroom, café…" />
+          <div class="inline-input-actions">
+            <button class="confirm-btn" id="place-confirm">Confirm</button>
+            <button class="cancel-btn" id="place-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="place-pills" style="margin-bottom:8px"></div>
+
+        <button class="sidebar-btn" id="btn-name">Enter Name</button>
+        <div class="inline-input-group" id="name-input-group" style="display:none">
+          <input class="inline-input" id="name-input" type="text" placeholder="Student name" maxlength="60" />
+          <div class="inline-input-actions">
+            <button class="confirm-btn" id="name-confirm">Confirm</button>
+            <button class="cancel-btn" id="name-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="name-display" style="display:none"></div>
+
+        <div class="sep"></div>
+
+        <!-- Add Elements (buttons are built from BUBBLE_TYPES) -->
+        <div class="section-label">Add Elements</div>
+        <div id="add-buttons"></div>
+
+        <div class="sep"></div>
+
+        <!-- Canvas Actions -->
+        <div class="section-label">Canvas Actions</div>
+        <button class="sidebar-btn" id="btn-clear">Clear Canvas</button>
+
+        <div class="sidebar-spacer"></div>
+
+        <!-- Legend (built from BUBBLE_TYPES) -->
+        <div class="section-label">Legend</div>
+        <div id="legend"></div>
+
+        <p class="sidebar-footer">DREAMS-4-MB builds an abstract vision of a mood before it becomes a Mood Board — a collage-style composition that communicates emotion visually. The canvas is a four-quadrant plane with its origin at the center, where the X and Y axes meet. A bubble scores 100 at the center and 0 at any corner, whichever direction it is placed in. Each element's Importance Measurement (IM) — that score × the bubble's radius — is shown as a share of the session's total IM.</p>
+      </div>
+
+      <!-- Canvas Area -->
+      <div id="dreams-main">
+        <div id="canvas-row">
+        <div id="canvas-wrapper">
+          <div id="canvas-label">CANVAS</div>
+          <div id="dreams-canvas">
+            <!-- SVG grid -->
+            <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0.4;" aria-hidden="true">
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)"/>
+            </svg>
+
+            <!-- Four-quadrant plane: X and Y axes cross at the canvas center (score 100),
+                 with faint contours marking where the score falls to 75, 50 and 25.
+                 Drawn in INIT from the canvas constants. -->
+            <svg id="plane-axes" aria-hidden="true"></svg>
+
+            <!-- Score reference labels: 100 at the origin, 0 at every corner -->
+            <div class="axis-corner-label" style="top:6px;left:6px;">0</div>
+            <div class="axis-corner-label" style="top:6px;right:6px;">0</div>
+            <div class="axis-corner-label" style="bottom:6px;left:6px;">0</div>
+            <div class="axis-corner-label" style="bottom:6px;right:6px;">0</div>
+            <div class="axis-corner-label" style="top:calc(50% + 5px);left:calc(50% + 6px);">100</div>
+            <div class="axis-direction-label" style="top:calc(50% + 5px);right:8px;">X-axis</div>
+            <div class="axis-direction-label" style="top:8px;left:calc(50% + 6px);">Y-axis</div>
+
+            <!-- Circle text editor overlay -->
+            <textarea id="circle-editor"></textarea>
+            <!-- Empty state -->
+            <div id="canvas-empty">
+              <div class="empty-title">What would <em id="empty-feeling">a mood</em> look like as a mood board?</div>
+              <div class="empty-sub">Begin by entering your feelings and space, then add bubbles.</div>
+            </div>
+          </div>
+          <div id="canvas-hint">click to select &nbsp;·&nbsp; double-click to edit label &nbsp;·&nbsp; drag to move &nbsp;·&nbsp; drag handle to resize</div>
+        </div>
+
+        <!-- Right column: IM scores + explanation, stacked at a fixed width so the canvas never has to grow or crowd as bubbles are added -->
+        <div id="side-panel">
+          <div id="magnitude-card" class="side-card">
+            <h3>Importance Measurement</h3>
+            <div id="magnitude-panel"></div>
+          </div>
+
+          <div id="im-explainer" class="side-card">
+            <h3>How Importance Is Measured</h3>
+            <p>The canvas is a four-quadrant plane. Its <strong>center</strong>, where the X and Y axes meet, is the heart of the mood, and every bubble is placed somewhere around it.</p>
+            <p><strong>Distance from the center.</strong> A bubble placed exactly on the center scores <strong>100</strong>. The score falls the farther the bubble moves away, reaching <strong>0</strong> at any of the four corners. Direction does not matter — left, right, up or down all count the same, and there are no negative values. Only how far the bubble sits from the center changes its score. The faint rings on the canvas mark where the score drops to 75, 50 and 25.</p>
+            <p><strong>Size of the bubble.</strong> The bigger a bubble is drawn, the heavier or more dominant that element is meant to feel in the mood board.</p>
+            <p>Importance Measurement (IM) multiplies the two: the bubble's score × its radius. Bubbles of the same type are added together, and the percentage shown is that type's share of everything mapped on the canvas — the higher the share, the more that element should define the mood board.</p>
+            <p>The <strong>Space</strong> typed in Session Setup names what the mood board represents. It is context, not a bubble, so it earns no IM.</p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div><!-- /stage-dreams -->
+
+    <!-- ── STAGE 2: EMPATHIC PROMPTING ── -->
+    <div id="stage-ep">
+
+      <!-- Sidebar -->
+      <div class="sidebar" id="ep-sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-title">EP</div>
+          <div class="brand-sub">Empathic Prompting</div>
+          <div class="brand-stage">Stage 2 of 2</div>
+        </div>
+        <div class="sep"></div>
+
+        <!-- Session Summary -->
+        <div class="section-label">Session</div>
+        <div id="ep-name-display" style="display:none;margin-bottom:6px"></div>
+        <div id="ep-place-display" style="display:none"></div>
+        <div id="ep-feelings-pills" style="margin-bottom:6px"></div>
+        <div id="ep-circle-count" style="font-size:9px;color:var(--text-muted);margin-bottom:4px"></div>
+
+        <div class="sep"></div>
+
+        <!-- Dreams Data Status (rows are built from BUBBLE_TYPES) -->
+        <div class="section-label">Dreams Data</div>
+        <div id="data-status"></div>
+        <p style="font-size:8px;font-style:italic;color:var(--text-muted);margin-top:4px">Fields pre-filled from your canvas.</p>
+
+        <div class="sidebar-spacer"></div>
+        <p class="sidebar-footer">EP translates the mood vocabulary of your canvas into a structured prompt for AI mood board generation.</p>
+      </div>
+
+      <!-- EP Main -->
+      <div id="ep-main">
+        <h2 class="ep-heading">Empathic Prompting</h2>
+        <p class="ep-subhead">Translate your DREAMS canvas into an AI mood board prompt</p>
+        <div class="sep" style="margin-bottom:20px"></div>
+
+        <!-- Step 1: Output Options -->
+        <div class="section-label" style="margin-bottom:12px">Step 1 — Select Output Options</div>
+        <!-- Stacked full-width so the long Setting and Format options stay readable -->
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:24px">
+          <div>
+            <div style="font-size:8px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px">Image Style</div>
+            <select class="ep-select" id="main-image-style-select" style="margin-bottom:0">
+              <option>Randomly structured, overlapped flat collage</option>
+              <option>Organized grid flat collage</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:8px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px">Setting</div>
+            <select class="ep-select" id="main-setting-select" style="margin-bottom:0">
+              <option>Image collage with a Blank-white background. Only images</option>
+              <option>Image collage with a Blank-dark background. Only images</option>
+              <option>Image collage with a Blank-white background. Images and descriptive keywords</option>
+              <option>Image collage with a Blank-dark background. Images and descriptive keywords</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:8px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px">Format</div>
+            <select class="ep-select" id="main-format-select" style="margin-bottom:0">
+              <option>Landscape 16:9 with a watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
+              <option>Vertical 9:16 with a watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
+              <option>Square 1:1 with a watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sep" style="margin-bottom:20px"></div>
+
+        <!-- Step 2: DREAMS Data (cards are built from EP_FIELDS) -->
+        <div class="section-label" style="margin-bottom:12px">Step 2 — Review DREAMS Data</div>
+        <div id="dreams-data-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px"></div>
+
+        <div class="sep" style="margin-bottom:20px"></div>
+
+        <!-- Step 3: Summary -->
+        <div class="section-label" style="margin-bottom:12px">Step 3 — Summary</div>
+        <div class="ep-btn-row">
+          <button id="summary-btn">Summary</button>
+        </div>
+
+        <!-- Summary Panel -->
+        <div id="summary-panel" style="display:none;background:#fff;border:1px solid var(--border);padding:20px 24px;margin-top:4px">
+          <div class="output-header-row" style="margin-bottom:14px">
+            <span class="output-heading">Summary</span>
+            <div style="display:flex;gap:8px">
+              <button id="copy-btn" style="font-family:var(--font-mono);font-size:10px;border:1px solid var(--border);background:#fff;padding:4px 10px;cursor:pointer">📋 Copy</button>
+              <button id="clear-summary-btn" style="font-family:var(--font-mono);font-size:10px;border:1px solid var(--border);background:#fff;color:var(--text-muted);padding:4px 10px;cursor:pointer">Clear</button>
+            </div>
+          </div>
+          <div id="summary-lines"></div>
+        </div>
+        <div class="sep" style="margin-bottom:20px"></div>
+
+        <!-- Step 4: Empathic Prompt -->
+        <div class="section-label" style="margin-bottom:12px">Step 4 — Generate Empathic Prompt</div>
+        <div class="ep-btn-row">
+          <button id="generate-ep-btn">Generate Empathic Prompt</button>
+        </div>
+
+        <!-- Empathic Prompt Panel -->
+        <div id="ep-prompt-panel" style="display:none;background:#fff;border:1px solid var(--border);padding:20px 24px;margin-top:4px">
+          <div class="output-header-row" style="margin-bottom:14px">
+            <span class="output-heading">Empathic Prompt</span>
+            <div style="display:flex;gap:8px">
+              <button id="copy-ep-btn" style="font-family:var(--font-mono);font-size:10px;border:1px solid var(--border);background:#fff;padding:4px 10px;cursor:pointer">📋 Copy</button>
+              <button id="clear-ep-btn" style="font-family:var(--font-mono);font-size:10px;border:1px solid var(--border);background:#fff;color:var(--text-muted);padding:4px 10px;cursor:pointer">Clear</button>
+            </div>
+          </div>
+          <div id="ep-prompt-colored"></div>
+          <textarea id="ep-prompt-editable" placeholder="Your empathic prompt will appear here — you can edit it before copying."></textarea>
+        </div>
+      </div><!-- /ep-main -->
+
+    </div><!-- /stage-ep -->
+
+  </div><!-- /stage-container -->
+</div><!-- /app -->
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ── STATE ── */
+  const session = { name: '', place: '', feelings: [], circles: [] };
+  const dirtyFields = new Set();
+
+  /* ── ELEMENT TYPES ──
+     Every bubble type the canvas offers. The sidebar buttons, legend, IM panel,
+     EP status rows, EP cards and prompt are all built from this list. */
+  const BUBBLE_TYPES = [
+    { key:'walls',     label:'Walls',               group:'Surfaces', color:'#6366f1', noun:'walls',
+      hint:'What are the walls made of?',
+      ex:'Limewash plaster, raw concrete, oak panelling, glazed tile…' },
+    { key:'ceilings',  label:'Ceilings',            group:'Surfaces', color:'#a855f7', noun:'ceiling',
+      hint:'What is overhead?',
+      ex:'Exposed timber beams, white plaster, acoustic felt…' },
+    { key:'floors',    label:'Floors',              group:'Surfaces', color:'#92400e', noun:'floor',
+      hint:'What is underfoot?',
+      ex:'Terrazzo, wide-plank oak, polished concrete, wool carpet…' },
+    { key:'furniture', label:'Furniture',           group:'Objects',  color:'#10b981',
+      hint:'What furniture carries the mood?',
+      ex:'Low linen sofa, bentwood chairs, a single oak table…' },
+    { key:'plumbing',  label:'Plumbing Fixtures',   group:'Objects',  color:'#06b6d4',
+      hint:'Which plumbing fixtures appear?',
+      ex:'Freestanding stone tub, brass taps, pedestal basin…' },
+    { key:'lightfix',  label:'Light Fixtures',      group:'Objects',  color:'#f59e0b',
+      hint:'Which light fixtures set the tone?',
+      ex:'Paper lantern pendant, brass sconces, arc floor lamp…' },
+    { key:'decor',     label:'Decorative Objects',  group:'Objects',  color:'#ec4899',
+      hint:'Which decorative objects belong here?',
+      ex:'Ceramic vases, woven textiles, framed prints, candles…' },
+    { key:'greenery',  label:'Greenery',            group:'Objects',  color:'#65a30d',
+      hint:'What grows in the space?',
+      ex:'Olive tree, trailing pothos, dried grasses, moss…' },
+    { key:'animals',   label:'Animals',             group:'Objects',  color:'#f97316',
+      hint:'Which animals share the space?',
+      ex:'A sleeping cat, koi, songbirds…' },
+    { key:'misc',      label:'Miscellaneous',       group:'Objects',  color:'#64748b',
+      hint:'Anything else that belongs to the mood?',
+      ex:'Stacked books, a record player, a bowl of lemons…' },
+  ];
+  /* The space the mood board represents is typed in Session Setup, not placed
+     as a bubble, so it never contributes to the Importance Measurement. */
+  const PLACE_FIELD = { key:'place', label:'Space', color:'#374151',
+    hint:'What space will the mood board represent?',
+    ex:'A small reading room, a spa bathroom, a neighborhood café…' };
+  const EP_FIELDS = [PLACE_FIELD, ...BUBBLE_TYPES];
+
+  function rgba(hex, alpha) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${alpha})`;
+  }
+  const TYPE_COLORS = {}, TYPE_BG = {}, TYPE_GLOW = {}, TYPE_LABELS = {};
+  EP_FIELDS.forEach(t => {
+    TYPE_COLORS[t.key] = t.color;
+    TYPE_BG[t.key]     = rgba(t.color, 0.10);
+    TYPE_GLOW[t.key]   = rgba(t.color, 0.35);
+    TYPE_LABELS[t.key] = t.label;
+  });
+
+  const CANVAS_W = 840, CANVAS_H = 580;
+  const CENTER_X = CANVAS_W / 2, CENTER_Y = CANVAS_H / 2;
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+  /* ── Four-quadrant plane helpers ──
+     The plane's origin is the canvas center, where the X and Y axes meet and
+     scores are highest. Coordinates are distances from that
+     origin — 0 at the center, 100 at the canvas edge — and are never negative:
+     left/right and up/down count the same. A bubble's vector magnitude is 100
+     at the origin and falls to 0 at any of the four corners. */
+  function toPlaneCoords(px, py) {
+    return {
+      x: (Math.abs(px - CENTER_X) / CENTER_X) * 100,
+      y: (Math.abs(py - CENTER_Y) / CENTER_Y) * 100
+    };
+  }
+  function computeMagnitude(px, py) {
+    const { x, y } = toPlaneCoords(px, py);
+    const dist = Math.sqrt(x ** 2 + y ** 2);
+    const maxDist = Math.sqrt(100 ** 2 + 100 ** 2);
+    return Math.round(clamp(100 - (dist / maxDist) * 100, 0, 100));
+  }
+  /* Importance Measurement: vector magnitude × bubble radius */
+  function computeIM(magnitude, diameter) {
+    return Math.round(magnitude * (diameter / 2));
+  }
+
+  /* ── BUILD TYPE-DRIVEN UI ── */
+  function makeDot(color) {
+    const dot = document.createElement('span');
+    dot.className = 'type-dot';
+    dot.style.background = color;
+    return dot;
+  }
+
+  (function buildTypeUI() {
+    const addButtons = document.getElementById('add-buttons');
+    const legend     = document.getElementById('legend');
+    const statusList = document.getElementById('data-status');
+    const cardGrid   = document.getElementById('dreams-data-grid');
+
+    let lastGroup = null;
+    BUBBLE_TYPES.forEach(t => {
+      // Sidebar "add" button, under its group heading
+      if (t.group !== lastGroup) {
+        const g = document.createElement('div');
+        g.className = 'group-label';
+        g.textContent = t.group;
+        addButtons.appendChild(g);
+        lastGroup = t.group;
+      }
+      const btn = document.createElement('button');
+      btn.className = 'sidebar-btn add-circle-btn';
+      btn.dataset.type = t.key;
+      btn.dataset.hint = t.hint;
+      btn.dataset.ex   = t.ex;
+      btn.appendChild(makeDot(t.color));
+      btn.appendChild(document.createTextNode('+ ' + t.label));
+      addButtons.appendChild(btn);
+
+      // Legend row
+      const lr = document.createElement('div');
+      lr.className = 'legend-row';
+      lr.appendChild(makeDot(t.color));
+      const ll = document.createElement('span');
+      ll.textContent = t.label;
+      lr.appendChild(ll);
+      legend.appendChild(lr);
+
+      // EP sidebar status row
+      const sr = document.createElement('div');
+      sr.className = 'data-status-row';
+      sr.id = `status-${t.key}`;
+      sr.appendChild(makeDot(t.color));
+      const sl = document.createElement('span');
+      sl.className = 'status-type-label';
+      sl.textContent = t.label;
+      const sc = document.createElement('span');
+      sc.className = 'status-count';
+      sc.id = `cnt-${t.key}`;
+      sc.textContent = '0 circles';
+      sr.appendChild(sl);
+      sr.appendChild(sc);
+      statusList.appendChild(sr);
+    });
+
+    // EP review cards (Space first, then one per bubble type)
+    EP_FIELDS.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'ep-card';
+      card.id = `card-${t.key}`;
+      card.style.background = TYPE_BG[t.key];
+      card.style.borderLeft = `3px solid ${t.color}`;
+
+      const top = document.createElement('div');
+      top.className = 'card-top';
+      top.appendChild(makeDot(t.color));
+      const tl = document.createElement('span');
+      tl.className = 'card-type-label';
+      tl.style.color = t.color;
+      tl.textContent = t.label;
+      top.appendChild(tl);
+
+      const cue = document.createElement('p');
+      cue.className = 'facilitator-cue';
+      cue.textContent = t.hint;
+
+      const ta = document.createElement('textarea');
+      ta.className = 'ep-textarea';
+      ta.id = `ta-${t.key}`;
+      ta.dataset.field = t.key;
+      ta.rows = 2;
+      ta.placeholder = 'e.g. ' + t.ex.charAt(0).toLowerCase() + t.ex.slice(1);
+
+      card.appendChild(top);
+      card.appendChild(cue);
+      card.appendChild(ta);
+      cardGrid.appendChild(card);
+    });
+  })();
+
+  /* ── DOM REFS ── */
+  const dreamsStagEl  = document.getElementById('stage-dreams');
+  const epStageEl     = document.getElementById('stage-ep');
+  const dreamsCanvas  = document.getElementById('dreams-canvas');
+  const canvasLabel   = document.getElementById('canvas-label');
+  const canvasEmpty   = document.getElementById('canvas-empty');
+  const emptyFeeling  = document.getElementById('empty-feeling');
+  const sessionInd    = document.getElementById('session-indicator');
+  const epWarning     = document.getElementById('ep-warning');
+  const magnitudePanel = document.getElementById('magnitude-panel');
+
+  /* ── HELPERS ── */
+  function updateCanvasLabel() {
+    const parts = [];
+    if (session.name) parts.push(session.name.toUpperCase());
+    if (session.place) parts.push(session.place.toUpperCase());
+    if (session.feelings.length) parts.push(session.feelings.join('  ·  ').toUpperCase());
+    canvasLabel.textContent = parts.length ? parts.join('  —  ') : 'CANVAS';
+  }
+
+  function updateEmptyState() {
+    canvasEmpty.style.display = session.circles.length ? 'none' : 'flex';
+    emptyFeeling.textContent = session.feelings[0] || 'a mood';
+  }
+
+  function updateSessionIndicator() {
+    const parts = [];
+    if (session.name) parts.push(session.name);
+    if (session.place) parts.push(session.place);
+    if (session.feelings.length) parts.push(`${session.feelings.length} feeling${session.feelings.length > 1 ? 's' : ''}`);
+    sessionInd.textContent = parts.join(' · ');
+  }
+
+  function renderPills(container, tags, extraClass) {
+    container.innerHTML = '';
+    tags.forEach(t => {
+      const s = document.createElement('span');
+      s.className = 'pill' + (extraClass ? ' ' + extraClass : '');
+      s.textContent = t;
+      container.appendChild(s);
+    });
+  }
+
+  /* ── Magnitude panel: shows each bubble type's color, label, IM and share ── */
+  function renderMagnitudePanel() {
+    magnitudePanel.innerHTML = '';
+    if (!session.circles.length) {
+      const empty = document.createElement('span');
+      empty.className = 'magnitude-empty';
+      empty.textContent = 'No circles placed yet — Importance Measurement will appear here.';
+      magnitudePanel.appendChild(empty);
+      return;
+    }
+    const totalIM = session.circles.reduce((sum, c) => sum + c.im, 0);
+
+    // Group bubbles by type so two or more of the same type combine into one IM + percentage
+    const groups = {};
+    session.circles.forEach(c => {
+      if (!groups[c.type]) groups[c.type] = { im: 0, count: 0 };
+      groups[c.type].im += c.im;
+      groups[c.type].count += 1;
+    });
+
+    BUBBLE_TYPES.forEach(({ key: type }) => {
+      const g = groups[type];
+      if (!g) return;
+
+      const chip = document.createElement('div');
+      chip.className = 'magnitude-chip';
+
+      const left = document.createElement('div');
+      left.className = 'chip-left';
+      const label = document.createElement('span');
+      label.textContent = TYPE_LABELS[type] + (g.count > 1 ? ` (×${g.count})` : '');
+      left.appendChild(makeDot(TYPE_COLORS[type]));
+      left.appendChild(label);
+
+      const right = document.createElement('div');
+      right.className = 'chip-right';
+      const im = document.createElement('span');
+      im.className = 'im-value';
+      im.style.color = TYPE_COLORS[type];
+      im.textContent = 'IM ' + g.im;
+      const pct = document.createElement('span');
+      pct.className = 'pct-value';
+      const pctValue = totalIM > 0 ? (g.im / totalIM) * 100 : 0;
+      pct.textContent = pctValue.toFixed(1) + '%';
+      right.appendChild(im);
+      right.appendChild(pct);
+
+      chip.appendChild(left);
+      chip.appendChild(right);
+      magnitudePanel.appendChild(chip);
+    });
+
+    const totalRow = document.createElement('div');
+    totalRow.className = 'im-total-row';
+    totalRow.innerHTML = 'Total Importance Measurement (IM): <strong>' + totalIM + '</strong>';
+    magnitudePanel.appendChild(totalRow);
+  }
+
+  /* ── TOOLTIP ── */
+  let activeTooltip = null;
+  function showTooltip(btn) {
+    removeTooltip();
+    const hint = btn.dataset.hint;
+    const ex   = btn.dataset.ex;
+    if (!hint) return;
+    const rect = btn.getBoundingClientRect();
+    const tip  = document.createElement('div');
+    tip.style.cssText = `position:fixed;top:${rect.top + rect.height/2}px;left:${rect.right + 12}px;transform:translateY(-50%);background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 13px;min-width:220px;max-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:9999;pointer-events:none;animation:fadeIn 0.15s ease;`;
+    tip.innerHTML = `<div style="font-family:var(--font-serif);font-size:12px;color:#111;margin-bottom:4px">${hint}</div><div style="font-family:var(--font-mono);font-size:10px;color:#9ca3af;line-height:1.5">${ex}</div><div style="position:absolute;left:-6px;top:50%;transform:translateY(-50%);width:10px;height:10px;background:#fff;border:1px solid #e5e7eb;border-right:none;border-bottom:none;rotate:-45deg"></div>`;
+    document.body.appendChild(tip);
+    activeTooltip = tip;
+  }
+  function removeTooltip() {
+    if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
+  }
+
+  /* ── CIRCLES ── */
+  let selectedId = null;
+  let dragging   = null; // { el, circleObj, startMX, startMY, startX, startY }
+  let resizing   = null; // { el, circleObj, startMX, startMY, startD }
+
+  function getCircleEl(id) { return dreamsCanvas.querySelector(`.circle[data-id="${id}"]`); }
+
+  function createCircleEl(c) {
+    const el = document.createElement('div');
+    el.className = 'circle';
+    el.dataset.id = c.id;
+    el.style.cssText = `
+      left:${c.x}px; top:${c.y}px;
+      width:${c.diameter}px; height:${c.diameter}px;
+      background:${TYPE_BG[c.type]};
+      border:1.5px solid ${TYPE_COLORS[c.type]};
+      --glow-color:${TYPE_GLOW[c.type]};
+    `;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'circle-label';
+    lbl.style.fontSize = clamp(c.diameter * 0.1, 9, 13) + 'px';
+    lbl.textContent = c.label;
+    el.appendChild(lbl);
+
+    const handle = document.createElement('div');
+    handle.className = 'resize-handle';
+    handle.style.background = TYPE_COLORS[c.type];
+    el.appendChild(handle);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('mousedown', e => { e.stopPropagation(); deleteCircle(c.id); });
+    el.appendChild(delBtn);
+
+    /* Mousedown on circle body → select + drag */
+    el.addEventListener('mousedown', e => {
+      if (e.target === handle) return;
+      if (e.target === delBtn) return;
+      e.stopPropagation();
+      selectCircle(c.id);
+      dragging = { el, circleObj: c, startMX: e.clientX, startMY: e.clientY, startX: c.x, startY: c.y };
+    });
+
+    /* Double-click on circle body → open text editor */
+    el.addEventListener('dblclick', e => {
+      if (e.target === handle) return;
+      if (e.target === delBtn) return;
+      e.stopPropagation();
+      showCircleEditor(c);
+    });
+
+    /* Mousedown on handle → resize */
+    handle.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      resizing = { el, circleObj: c, startMX: e.clientX, startMY: e.clientY, startD: c.diameter };
+    });
+
+    dreamsCanvas.appendChild(el);
+    return el;
+  }
+
+  function addCircle(type) {
+    const d = 120;
+    const x = clamp(40 + Math.random() * (CANVAS_W - 80), 0, CANVAS_W);
+    const y = clamp(40 + Math.random() * (CANVAS_H - 80), 0, CANVAS_H);
+    const magnitude = computeMagnitude(x, y);
+    const c = { id: uid(), type, label: TYPE_LABELS[type].toLowerCase(), diameter: d, x, y, magnitude, im: computeIM(magnitude, d) };
+    session.circles.push(c);
+    createCircleEl(c);
+    selectCircle(c.id);
+    updateEmptyState();
+    updateSessionIndicator();
+    renderMagnitudePanel();
+  }
+
+  function deleteCircle(id) {
+    session.circles = session.circles.filter(c => c.id !== id);
+    if (circleEditor.dataset.id === id) hideCircleEditor();
+    const el = getCircleEl(id);
+    if (el) el.remove();
+    if (selectedId === id) selectedId = null;
+    updateEmptyState();
+    updateSessionIndicator();
+    renderMagnitudePanel();
+  }
+
+  /* ── Circle editor overlay ── */
+  const circleEditor = document.getElementById('circle-editor');
+
+  function showCircleEditor(c) {
+    const r = c.diameter / 2;
+    circleEditor.style.left     = (c.x - r) + 'px';
+    circleEditor.style.top      = (c.y - r) + 'px';
+    circleEditor.style.width    = c.diameter + 'px';
+    circleEditor.style.height   = c.diameter + 'px';
+    circleEditor.style.fontSize = clamp(c.diameter * 0.1, 9, 13) + 'px';
+    circleEditor.style.display  = 'block';
+    circleEditor.dataset.id     = c.id;
+    circleEditor.value          = c.label;
+    const el = getCircleEl(c.id);
+    if (el) el.querySelector('.circle-label').style.visibility = 'hidden';
+    circleEditor.focus();
+    circleEditor.select();
+  }
+
+  function hideCircleEditor() {
+    const prevId = circleEditor.dataset.id;
+    if (prevId) {
+      const el = getCircleEl(prevId);
+      if (el) el.querySelector('.circle-label').style.visibility = 'visible';
+    }
+    circleEditor.style.display = 'none';
+    circleEditor.dataset.id    = '';
+  }
+
+  circleEditor.addEventListener('mousedown', e => e.stopPropagation());
+  circleEditor.addEventListener('input', () => {
+    const id = circleEditor.dataset.id;
+    if (id) updateCircleLabel(id, circleEditor.value);
+  });
+  circleEditor.addEventListener('keydown', e => {
+    if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
+      e.preventDefault();
+      deselectAll();
+    }
+  });
+
+  function selectCircle(id) {
+    hideCircleEditor();
+    if (selectedId) {
+      const prev = getCircleEl(selectedId);
+      if (prev) prev.classList.remove('selected');
+    }
+    selectedId = id;
+    const el = getCircleEl(id);
+    if (el) el.classList.add('selected');
+  }
+
+  function deselectAll() {
+    hideCircleEditor();
+    if (selectedId) {
+      const el = getCircleEl(selectedId);
+      if (el) el.classList.remove('selected');
+    }
+    selectedId = null;
+  }
+
+  function updateCircleLabel(id, label) {
+    const c = session.circles.find(c => c.id === id);
+    if (!c) return;
+    c.label = label;
+    const el = getCircleEl(id);
+    if (!el) return;
+    el.querySelector('.circle-label').textContent = label;
+  }
+
+  /* ── Mouse events for drag / resize ── */
+  document.addEventListener('mousemove', e => {
+    if (dragging) {
+      const { el, circleObj, startMX, startMY, startX, startY } = dragging;
+      const dx = e.clientX - startMX, dy = e.clientY - startMY;
+      const nx = clamp(startX + dx, 0, CANVAS_W);
+      const ny = clamp(startY + dy, 0, CANVAS_H);
+      circleObj.x = nx; circleObj.y = ny;
+      circleObj.magnitude = computeMagnitude(nx, ny);
+      circleObj.im = computeIM(circleObj.magnitude, circleObj.diameter);
+      el.style.left = nx + 'px'; el.style.top = ny + 'px';
+      renderMagnitudePanel();
+      if (circleEditor.dataset.id === circleObj.id) {
+        const r = circleObj.diameter / 2;
+        circleEditor.style.left = (nx - r) + 'px';
+        circleEditor.style.top  = (ny - r) + 'px';
+      }
+    }
+    if (resizing) {
+      const { el, circleObj, startMX, startMY, startD } = resizing;
+      const dx = e.clientX - startMX, dy = e.clientY - startMY;
+      const delta = (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+      const newD = clamp(startD + delta, 60, 400);
+      circleObj.diameter = newD;
+      circleObj.im = computeIM(circleObj.magnitude, newD);
+      el.style.width  = newD + 'px';
+      el.style.height = newD + 'px';
+      el.querySelector('.circle-label').style.fontSize = clamp(newD * 0.1, 9, 13) + 'px';
+      if (circleEditor.dataset.id === circleObj.id) {
+        const r = newD / 2;
+        circleEditor.style.left     = (circleObj.x - r) + 'px';
+        circleEditor.style.top      = (circleObj.y - r) + 'px';
+        circleEditor.style.width    = newD + 'px';
+        circleEditor.style.height   = newD + 'px';
+        circleEditor.style.fontSize = clamp(newD * 0.1, 9, 13) + 'px';
+      }
+      renderMagnitudePanel();
+    }
+  });
+
+  document.addEventListener('mouseup', () => { dragging = null; resizing = null; });
+
+  /* ── Canvas mousedown → deselect ── */
+  dreamsCanvas.addEventListener('mousedown', e => {
+    if (e.target === dreamsCanvas || e.target.tagName === 'svg' || e.target.tagName === 'rect') {
+      deselectAll();
+    }
+  });
+
+  /* ── Escape anywhere to deselect ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && selectedId) deselectAll();
+  });
+
+  /* ── SESSION SETUP: FEELINGS / SPACE / NAME ── */
+  const feelingsGroup    = document.getElementById('feelings-input-group');
+  const feelingsInput    = document.getElementById('feelings-input');
+  const feelingsPills    = document.getElementById('feelings-pills');
+  const placeGroup       = document.getElementById('place-input-group');
+  const placeInput       = document.getElementById('place-input');
+  const placePills       = document.getElementById('place-pills');
+  const nameGroup        = document.getElementById('name-input-group');
+  const nameInput        = document.getElementById('name-input');
+  const nameDisplay      = document.getElementById('name-display');
+
+  const setupGroups = [feelingsGroup, placeGroup, nameGroup];
+
+  /* Opens one Session Setup input (closing the others), or closes it if show is false */
+  function showSetupInput(group, input, show) {
+    setupGroups.forEach(g => { g.style.display = 'none'; });
+    if (show) {
+      group.style.display = 'flex';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  function wireSetupInput(btnId, group, input, confirmId, cancelId, onConfirm) {
+    const confirm = () => { onConfirm(); showSetupInput(group, input, false); };
+    document.getElementById(btnId).addEventListener('click', () => {
+      showSetupInput(group, input, group.style.display === 'none');
+    });
+    document.getElementById(confirmId).addEventListener('click', confirm);
+    document.getElementById(cancelId).addEventListener('click', () => showSetupInput(group, input, false));
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirm();
+      if (e.key === 'Escape') showSetupInput(group, input, false);
+    });
+  }
+
+  wireSetupInput('btn-feelings', feelingsGroup, feelingsInput, 'feelings-confirm', 'feelings-cancel', () => {
+    const tags = feelingsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (!tags.length) return;
+    session.feelings = tags;
+    renderPills(feelingsPills, tags);
+    emptyFeeling.textContent = tags[0];
+    updateCanvasLabel();
+    updateSessionIndicator();
+  });
+
+  /* The space the mood board represents: typed here instead of placed as a bubble */
+  wireSetupInput('btn-place', placeGroup, placeInput, 'place-confirm', 'place-cancel', () => {
+    const val = placeInput.value.trim();
+    if (!val) return;
+    session.place = val;
+    renderPills(placePills, [val], 'place-pill');
+    updateCanvasLabel();
+    updateSessionIndicator();
+  });
+
+  /* The student's name: shown with the other setup inputs in the canvas label (upper left) */
+  wireSetupInput('btn-name', nameGroup, nameInput, 'name-confirm', 'name-cancel', () => {
+    const val = nameInput.value.trim();
+    if (!val) return;
+    session.name = val;
+    nameDisplay.textContent = val;
+    nameDisplay.style.display = 'block';
+    updateCanvasLabel();
+    updateSessionIndicator();
+  });
+
+  /* ── ADD CIRCLE BUTTONS ── */
+  document.querySelectorAll('.add-circle-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => showTooltip(btn));
+    btn.addEventListener('mouseleave', removeTooltip);
+    btn.addEventListener('click', () => addCircle(btn.dataset.type));
+  });
+
+  /* ── CLEAR CANVAS ── */
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    hideCircleEditor();
+    session.circles = [];
+    dreamsCanvas.querySelectorAll('.circle').forEach(el => el.remove());
+    selectedId = null;
+    updateEmptyState();
+    updateSessionIndicator();
+    renderMagnitudePanel();
+  });
+
+  /* ── NAV / STAGE SWITCHING ── */
+  function showEPWarning() {
+    epWarning.style.display = 'flex';
+    setTimeout(() => { epWarning.style.display = 'none'; }, 4000);
+  }
+
+  function switchStage(stage) {
+    dreamsStagEl.style.display = stage === 'dreams' ? 'flex' : 'none';
+    epStageEl.style.display    = stage === 'ep'     ? 'flex' : 'none';
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-stage="${stage}"]`).classList.add('active');
+    if (stage === 'ep') {
+      prefillEPFields();
+      if (session.circles.length === 0) showEPWarning();
+    }
+    updateSessionIndicator();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchStage(btn.dataset.stage));
+  });
+
+  /* ── EP: PREFILL ── */
+  function prefillField(type, value) {
+    if (dirtyFields.has(type)) return;
+    const ta   = document.getElementById(`ta-${type}`);
+    const card = document.getElementById(`card-${type}`);
+    ta.value = value;
+    if (value) {
+      card.style.setProperty('--flash-color', TYPE_BG[type]);
+      card.style.animation = 'none';
+      requestAnimationFrame(() => {
+        card.style.animation = 'flashBg 0.5s ease';
+      });
+    }
+  }
+
+  function prefillEPFields() {
+    const defaults = new Set(Object.values(TYPE_LABELS).map(l => l.toLowerCase()));
+
+    // Space comes from Session Setup rather than from bubbles
+    prefillField('place', session.place);
+
+    BUBBLE_TYPES.forEach(({ key: type }) => {
+      const circles = session.circles.filter(c => c.type === type);
+      const labels  = circles.map(c => c.label.trim()).filter(l => l && !defaults.has(l));
+      const cnt     = document.getElementById(`cnt-${type}`);
+      const row     = document.getElementById(`status-${type}`);
+
+      // Update status sidebar
+      cnt.textContent = `${circles.length} circle${circles.length !== 1 ? 's' : ''}`;
+      row.style.opacity = circles.length === 0 ? '0.35' : '1';
+
+      prefillField(type, labels.join(', '));
+    });
+
+    // Update EP sidebar session summary
+    const epName     = document.getElementById('ep-name-display');
+    const epPlace    = document.getElementById('ep-place-display');
+    const epPills    = document.getElementById('ep-feelings-pills');
+    const epCount    = document.getElementById('ep-circle-count');
+
+    if (session.name) {
+      epName.textContent = session.name;
+      epName.style.display = 'block';
+    } else {
+      epName.style.display = 'none';
+    }
+    epPlace.textContent = session.place ? 'Space: ' + session.place : '';
+    epPlace.style.display = session.place ? 'block' : 'none';
+    renderPills(epPills, session.feelings);
+    epCount.textContent = session.circles.length
+      ? `${session.circles.length} circle${session.circles.length !== 1 ? 's' : ''} mapped`
+      : '';
+  }
+
+  /* ── EP: TEXTAREA DIRTY TRACKING ── */
+  document.querySelectorAll('.ep-textarea').forEach(ta => {
+    ta.addEventListener('input', () => {
+      dirtyFields.add(ta.dataset.field);
+    });
+    // Focus border color
+    ta.addEventListener('focus', () => {
+      ta.style.borderColor = TYPE_COLORS[ta.dataset.field];
+    });
+    ta.addEventListener('blur', () => {
+      ta.style.borderColor = 'var(--border)';
+    });
+  });
+
+  /* ── EP: SUMMARY ── */
+  function getSummaryValues() {
+    const imageStyle  = document.getElementById('main-image-style-select').value;
+    const setting     = document.getElementById('main-setting-select').value;
+    const format      = document.getElementById('main-format-select').value;
+    const vals = {};
+    EP_FIELDS.forEach(({ key }) => {
+      vals[key] = document.getElementById(`ta-${key}`).value.trim();
+    });
+    return { imageStyle, setting, format, vals };
+  }
+
+  document.getElementById('summary-btn').addEventListener('click', () => {
+    const { imageStyle, setting, format, vals } = getSummaryValues();
+    const container = document.getElementById('summary-lines');
+    container.innerHTML = '';
+
+    function summaryRow(label, value, color) {
+      if (!value) return;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:14px;align-items:baseline;margin-bottom:9px;';
+      const lbl = document.createElement('span');
+      lbl.textContent = label;
+      lbl.style.cssText = 'min-width:136px;font-size:8px;color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;flex-shrink:0;line-height:1.6;';
+      const val = document.createElement('span');
+      val.textContent = value;
+      val.style.cssText = `font-size:11px;line-height:1.5;${color ? 'color:' + color + ';font-weight:500;' : 'color:#111;'}`;
+      row.appendChild(lbl);
+      row.appendChild(val);
+      container.appendChild(row);
+    }
+
+    summaryRow('Image Style', imageStyle);
+    summaryRow('Setting', setting);
+    summaryRow('Format', format);
+
+    const divider = document.createElement('div');
+    divider.style.cssText = 'height:1px;background:var(--border-light);margin:10px 0 12px;';
+    container.appendChild(divider);
+
+    EP_FIELDS.forEach(t => summaryRow(t.label, vals[t.key], t.color));
+
+    const panel = document.getElementById('summary-panel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  document.getElementById('clear-summary-btn').addEventListener('click', () => {
+    document.getElementById('summary-lines').innerHTML = '';
+    document.getElementById('summary-panel').style.display = 'none';
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const { imageStyle, setting, format, vals } = getSummaryValues();
+    const line = (label, value) => label.toUpperCase().padEnd(21) + value;
+    const lines = [
+      line('Image Style', imageStyle),
+      line('Setting', setting),
+      line('Format', format),
+      '',
+      ...EP_FIELDS.filter(t => vals[t.key]).map(t => line(t.label, vals[t.key])),
+    ].join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
+    });
+  });
+
+  /* ── EP: GENERATE EMPATHIC PROMPT ── */
+  /* Prompt template:
+     [IMAGE STYLE] mood board of [SPACE],
+     [WALLS] walls, [CEILINGS] ceiling, [FLOORS] floor,
+     [FURNITURE], [PLUMBING FIXTURES], [LIGHT FIXTURES], [DECORATIVE OBJECTS],
+       [GREENERY], [ANIMALS], [MISCELLANEOUS].
+     [SETTING].
+     [FORMAT, including its watermark] --ar [ASPECT RATIO]
+     Each bracket in the first three lines is dropped if its field is empty. */
+  function getAspectRatioCode(format) {
+    const match = format.match(/\d+:\d+/);
+    return match ? match[0] : format;
+  }
+
+  /* Surface fields hold only a material ("raw concrete"), so the prompt names
+     the surface after it — unless the student already wrote it in. */
+  function promptText(t, value) {
+    if (!t.noun || new RegExp(t.noun.replace(/s$/, ''), 'i').test(value)) return value;
+    return `${value} ${t.noun}`;
+  }
+
+  document.getElementById('generate-ep-btn').addEventListener('click', () => {
+    const { imageStyle, setting, format, vals } = getSummaryValues();
+    const tail = `.\n${setting}.\n${format} --ar ${getAspectRatioCode(format)}`;
+
+    const trailingGroups = ['Surfaces', 'Objects']
+      .map(group => BUBBLE_TYPES
+        .filter(t => t.group === group && vals[t.key])
+        .map(t => ({ text: promptText(t, vals[t.key]), color: t.color })))
+      .filter(g => g.length);
+
+    // Build color-coded display
+    const colored = document.getElementById('ep-prompt-colored');
+    colored.innerHTML = '';
+
+    function seg(text, color) {
+      const s = document.createElement('span');
+      s.textContent = text;
+      if (color) { s.style.color = color; s.style.fontWeight = '500'; }
+      colored.appendChild(s);
+    }
+
+    seg(imageStyle + ' mood board');
+    if (vals.place) { seg(' of '); seg(vals.place, TYPE_COLORS.place); }
+    trailingGroups.forEach(group => {
+      seg(',\n');
+      group.forEach((item, i) => {
+        if (i > 0) seg(', ');
+        seg(item.text, item.color);
+      });
+    });
+    seg(tail);
+
+    // Build plain text for editable textarea
+    let plain = `${imageStyle} mood board` + (vals.place ? ` of ${vals.place}` : '');
+    trailingGroups.forEach(group => {
+      plain += ',\n' + group.map(item => item.text).join(', ');
+    });
+    plain += tail;
+
+    document.getElementById('ep-prompt-editable').value = plain;
+
+    const panel = document.getElementById('ep-prompt-panel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  document.getElementById('clear-ep-btn').addEventListener('click', () => {
+    document.getElementById('ep-prompt-colored').innerHTML = '';
+    document.getElementById('ep-prompt-editable').value = '';
+    document.getElementById('ep-prompt-panel').style.display = 'none';
+  });
+
+  document.getElementById('copy-ep-btn').addEventListener('click', () => {
+    const text = document.getElementById('ep-prompt-editable').value;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-ep-btn');
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
+    });
+  });
+
+  /* ── INIT ── */
+  /* Draw the plane: the two axes through the origin, plus a contour for each
+     of the 75 / 50 / 25 scores. Because X and Y are each scaled 0–100 to
+     their own canvas edge, a line of equal score is an ellipse. */
+  (function drawPlane() {
+    const svg = document.getElementById('plane-axes');
+    const NS = 'http://www.w3.org/2000/svg';
+    const add = (tag, attrs, text) => {
+      const node = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+      if (text) node.textContent = text;
+      svg.appendChild(node);
+      return node;
+    };
+    svg.setAttribute('viewBox', `0 0 ${CANVAS_W} ${CANVAS_H}`);
+
+    [75, 50, 25].forEach(score => {
+      const d = ((100 - score) / 100) * Math.SQRT2; // contour radius, as a fraction of the half-canvas
+      add('ellipse', { cx: CENTER_X, cy: CENTER_Y, rx: CENTER_X * d, ry: CENTER_Y * d,
+        fill: 'none', stroke: '#e5e7eb', 'stroke-width': 1, 'stroke-dasharray': '2 4' });
+      // One score marking per quadrant, on the diagonal just outside the contour
+      const ox = CENTER_X * d * Math.SQRT1_2 + 4, oy = CENTER_Y * d * Math.SQRT1_2 + 3;
+      [[1, -1], [-1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+        add('text', { x: CENTER_X + sx * ox, y: CENTER_Y + sy * oy,
+          'text-anchor': sx > 0 ? 'start' : 'end', 'dominant-baseline': sy > 0 ? 'hanging' : 'auto',
+          'font-family': 'DM Mono, monospace', 'font-size': 8, fill: '#9ca3af' }, String(score));
+      });
+    });
+
+    add('line', { x1: 0, y1: CENTER_Y, x2: CANVAS_W, y2: CENTER_Y, stroke: '#9ca3af', 'stroke-width': 1, 'stroke-dasharray': '4 3' });
+    add('line', { x1: CENTER_X, y1: 0, x2: CENTER_X, y2: CANVAS_H, stroke: '#9ca3af', 'stroke-width': 1, 'stroke-dasharray': '4 3' });
+  })();
+
+  updateEmptyState();
+  updateSessionIndicator();
+  renderMagnitudePanel();
+});
+</script>
+</body>
+</html>
