@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DREAMS-4-MB — Mood Board Workflow</title>
+  <title>DREAMS 4 MatBoard — Material Board Workflow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
@@ -132,6 +132,9 @@
     .side-card h3 { font-family:var(--font-serif); font-weight:400; font-size:14px; color:#111; margin-bottom:10px; }
     .side-card p { margin-bottom:10px; }
     .side-card p:last-child { margin-bottom:0; }
+    .side-card ol { padding-left:16px; }
+    .side-card li { margin-bottom:6px; }
+    .side-card li:last-child { margin-bottom:0; }
     .side-card strong { color:#111; font-weight:500; }
     #canvas-hint { font-size:9px; color:var(--text-ghost); letter-spacing:0.1em; margin-top:6px; align-self:flex-end; }
 
@@ -149,7 +152,6 @@
     /* ── Empty State ── */
     #canvas-empty { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:84px; gap:10px; pointer-events:none; z-index:3; }
     .empty-title { font-family:var(--font-serif); font-size:22px; color:var(--text-ghost); text-align:center; max-width:400px; line-height:1.5; font-style:italic; }
-    #empty-feeling { color:var(--text-muted); font-style:normal; }
     .empty-sub { font-family:var(--font-mono); font-size:10px; color:var(--text-ghost); letter-spacing:0.08em; }
 
     /* ── Circles ── */
@@ -256,7 +258,7 @@
 
   <!-- NAV BAR -->
   <div id="nav-bar">
-    <span class="wordmark">DREAMS-4-MB</span>
+    <span class="wordmark">DREAMS 4 MatBoard</span>
     <div class="nav-tabs">
       <button class="tab-btn active" data-stage="dreams">Stage 1 · DREAMS</button>
       <button class="tab-btn" data-stage="ep">Stage 2 · Empathic Prompting</button>
@@ -277,23 +279,13 @@
       <div class="sidebar" id="dreams-sidebar">
         <div class="sidebar-brand">
           <div class="brand-title">DREAMS</div>
-          <div class="brand-sub">Mood Board Mapping</div>
+          <div class="brand-sub">Material Board Mapping</div>
           <div class="brand-stage">Stage 1 of 2</div>
         </div>
         <div class="sep"></div>
 
         <!-- Session Setup -->
         <div class="section-label">Session Setup</div>
-        <button class="sidebar-btn" id="btn-feelings">Enter Feelings</button>
-        <div class="inline-input-group" id="feelings-input-group" style="display:none">
-          <input class="inline-input" id="feelings-input" type="text" placeholder="calm, grounded, open…" />
-          <div class="inline-input-actions">
-            <button class="confirm-btn" id="feelings-confirm">Confirm</button>
-            <button class="cancel-btn" id="feelings-cancel">Cancel</button>
-          </div>
-        </div>
-        <div id="feelings-pills" style="margin-bottom:8px"></div>
-
         <button class="sidebar-btn" id="btn-place">Enter Space</button>
         <div class="inline-input-group" id="place-input-group" style="display:none">
           <input class="inline-input" id="place-input" type="text" placeholder="reading room, spa bathroom, café…" />
@@ -304,9 +296,21 @@
         </div>
         <div id="place-pills" style="margin-bottom:8px"></div>
 
+        <!-- Physical sensations people should experience in the space -->
+        <button class="sidebar-btn" id="btn-sensations">Enter Sensations</button>
+        <div class="inline-input-group" id="sensations-input-group" style="display:none">
+          <input class="inline-input" id="sensations-input" type="text" placeholder="warm underfoot, enveloped, cool to the touch, airy…" />
+          <div style="font-size:9px;color:var(--text-muted);line-height:1.5">Separate with commas. e.g. warm, cool, soft, smooth, rough, enveloped, weightless, grounded, airy, hushed, echoing, still</div>
+          <div class="inline-input-actions">
+            <button class="confirm-btn" id="sensations-confirm">Confirm</button>
+            <button class="cancel-btn" id="sensations-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="sensations-pills" style="margin-bottom:8px"></div>
+
         <button class="sidebar-btn" id="btn-name">Enter Name</button>
         <div class="inline-input-group" id="name-input-group" style="display:none">
-          <input class="inline-input" id="name-input" type="text" placeholder="Student name" maxlength="60" />
+          <input class="inline-input" id="name-input" type="text" placeholder="Person(s) you are designing for" maxlength="60" />
           <div class="inline-input-actions">
             <button class="confirm-btn" id="name-confirm">Confirm</button>
             <button class="cancel-btn" id="name-cancel">Cancel</button>
@@ -332,7 +336,7 @@
         <div class="section-label">Legend</div>
         <div id="legend"></div>
 
-        <p class="sidebar-footer">DREAMS-4-MB builds an abstract vision of a mood before it becomes a Mood Board — a collage-style composition that communicates emotion visually. The canvas is a four-quadrant plane with its origin at the center, where the X and Y axes meet. A bubble scores 100 at the center and 0 at any corner, whichever direction it is placed in. Each element's Importance Measurement (IM) — that score × the bubble's radius — is shown as a share of the session's total IM.</p>
+        <p class="sidebar-footer">DREAMS 4 MatBoard helps define the material references for the interior design of a space before they become a Material Board — a collage-style composition of the surfaces, finishes and objects that will express the intended sensations. The canvas is a four-quadrant plane with its origin at the center, where the X and Y axes meet. A bubble scores 100 at the center and 0 at any corner, whichever direction it is placed in. Each element's Importance Measurement (IM) — that score × the bubble's radius — is shown as a share of the session's total IM.</p>
       </div>
 
       <!-- Canvas Area -->
@@ -369,15 +373,30 @@
             <textarea id="circle-editor"></textarea>
             <!-- Empty state -->
             <div id="canvas-empty">
-              <div class="empty-title">What would <em id="empty-feeling">a mood</em> look like as a board?</div>
-              <div class="empty-sub">Begin by entering your feelings and space, then add bubbles.</div>
+              <div class="empty-title">Imagine the materials, objects, and other elements for the space you are designing</div>
+              <div class="empty-sub">Enter the sensation(s), space, and the name of the person(s) you are designing for.</div>
             </div>
           </div>
           <div id="canvas-hint">click to select &nbsp;·&nbsp; double-click to edit label &nbsp;·&nbsp; drag to move &nbsp;·&nbsp; drag handle to resize</div>
         </div>
 
-        <!-- Right column: IM scores + explanation, stacked at a fixed width so the canvas never has to grow or crowd as bubbles are added -->
+        <!-- Right column: instructions, IM scores + explanation, stacked at a fixed width so the canvas never has to grow or crowd as bubbles are added -->
         <div id="side-panel">
+          <div id="instructions-card" class="side-card">
+            <h3>Instructions</h3>
+            <ol>
+              <li><strong>Enter Space.</strong> Type the interior space you are designing.</li>
+              <li><strong>Enter Sensations.</strong> List the physical sensations people should experience in it — warm, cool, soft, enveloped, airy, hushed…</li>
+              <li><strong>Enter Name.</strong> Name the person(s) you are designing for.</li>
+              <li><strong>Add elements.</strong> Add a bubble for each surface and object the space needs.</li>
+              <li><strong>Name each reference.</strong> Double-click a bubble and type its material, finish or object.</li>
+              <li><strong>Place it.</strong> Drag the bubbles that matter most toward the center.</li>
+              <li><strong>Size it.</strong> Drag a bubble's handle to make it bigger as it gains weight.</li>
+              <li><strong>Check the Importance Measurement</strong> below and adjust until the shares match your priorities.</li>
+              <li><strong>Go to Stage 2</strong> to turn the canvas into a material board prompt.</li>
+            </ol>
+          </div>
+
           <div id="magnitude-card" class="side-card">
             <h3>Importance Measurement</h3>
             <div id="magnitude-panel"></div>
@@ -385,11 +404,11 @@
 
           <div id="im-explainer" class="side-card">
             <h3>How Importance Is Measured</h3>
-            <p>The canvas is a four-quadrant plane. Its <strong>center</strong>, where the X and Y axes meet, is the heart of the mood, and every bubble is placed somewhere around it.</p>
-            <p><strong>Distance from the center.</strong> A bubble placed exactly on the center scores <strong>100</strong>. The score falls the farther the bubble moves away, reaching <strong>0</strong> at any of the four corners. Direction does not matter — left, right, up or down all count the same, and there are no negative values. Only how far the bubble sits from the center changes its score. The faint rings on the canvas mark where the score drops to 75, 50 and 25.</p>
-            <p><strong>Size of the bubble.</strong> The bigger a bubble is drawn, the heavier or more dominant that element is meant to feel in the mood board.</p>
-            <p>Importance Measurement (IM) multiplies the two: the bubble's score × its radius. Bubbles of the same type are added together, and the percentage shown is that type's share of everything mapped on the canvas — the higher the share, the more that element should define the mood board.</p>
-            <p>The <strong>Space</strong> typed in Session Setup names what the mood board represents. It is context, not a bubble, so it earns no IM.</p>
+            <p>The canvas is a four-quadrant plane. Its <strong>center</strong>, where the X and Y axes meet, stands for the sensations you want the person(s) to experience. Every bubble is placed somewhere around it.</p>
+            <p><strong>Distance from the center.</strong> A bubble placed exactly on the center scores <strong>100</strong>. The score falls the farther the bubble moves away, reaching <strong>0</strong> at any of the four corners. Direction does not matter — left, right, up or down all count the same, and there are no negative values. Only distance from the center changes the score. The faint rings mark where it drops to 75, 50 and 25.</p>
+            <p><strong>Size of the bubble.</strong> A bigger bubble means a heavier, more dominant element on the material board.</p>
+            <p>Importance Measurement (IM) multiplies the two: the bubble's score × its radius. Bubbles of the same type are added together, and each percentage is that type's share of the canvas total. The higher the share, the more that element should define the material board.</p>
+            <p>The <strong>Space</strong>, <strong>Sensations</strong> and <strong>Name</strong> from Session Setup are context, not bubbles, so they earn no IM.</p>
           </div>
         </div>
         </div>
@@ -412,7 +431,7 @@
         <div class="section-label">Session</div>
         <div id="ep-name-display" style="display:none;margin-bottom:6px"></div>
         <div id="ep-place-display" style="display:none"></div>
-        <div id="ep-feelings-pills" style="margin-bottom:6px"></div>
+        <div id="ep-sensations-pills" style="margin-bottom:6px"></div>
         <div id="ep-circle-count" style="font-size:9px;color:var(--text-muted);margin-bottom:4px"></div>
 
         <div class="sep"></div>
@@ -423,13 +442,13 @@
         <p style="font-size:8px;font-style:italic;color:var(--text-muted);margin-top:4px">Fields pre-filled from your canvas.</p>
 
         <div class="sidebar-spacer"></div>
-        <p class="sidebar-footer">EP translates the mood vocabulary of your canvas into a structured prompt for AI mood board generation.</p>
+        <p class="sidebar-footer">EP translates the material references on your canvas into a structured prompt for AI material board generation.</p>
       </div>
 
       <!-- EP Main -->
       <div id="ep-main">
         <h2 class="ep-heading">Empathic Prompting</h2>
-        <p class="ep-subhead">Translate your DREAMS canvas into an AI mood board prompt</p>
+        <p class="ep-subhead">Translate your DREAMS canvas into an AI material board prompt</p>
         <div class="sep" style="margin-bottom:20px"></div>
 
         <!-- Step 1: Output Options -->
@@ -455,9 +474,9 @@
           <div>
             <div style="font-size:8px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px">Format</div>
             <select class="ep-select" id="main-format-select" style="margin-bottom:0">
-              <option>Landscape 16:9 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
-              <option>Vertical 9:16 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
-              <option>Square 1:1 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MOOD BOARD&quot;</option>
+              <option>Landscape 16:9 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MATERIAL BOARD&quot;</option>
+              <option>Vertical 9:16 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MATERIAL BOARD&quot;</option>
+              <option>Square 1:1 with a diagonal watermark that says: &quot;PRE DRAFT VERSION - STUDENTS MUST SEARCH FOR REFERENCES AND BUILD THEIR OWN MATERIAL BOARD&quot;</option>
             </select>
           </div>
         </div>
@@ -518,7 +537,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ── STATE ── */
-  const session = { name: '', place: '', feelings: [], circles: [] };
+  const session = { name: '', place: '', sensations: [], circles: [] };
   const dirtyFields = new Set();
 
   /* ── ELEMENT TYPES ──
@@ -526,40 +545,40 @@ document.addEventListener('DOMContentLoaded', () => {
      EP status rows, EP cards and prompt are all built from this list. */
   const BUBBLE_TYPES = [
     { key:'walls',     label:'Walls',               group:'Surfaces', color:'#6366f1', noun:'walls',
-      hint:'What are the walls made of?',
-      ex:'Limewash plaster, raw concrete, oak panelling, glazed tile…' },
+      hint:'What material and finish cover the walls?',
+      ex:'Limewash plaster, board-formed concrete, rift oak panelling, zellige tile…' },
     { key:'ceilings',  label:'Ceilings',            group:'Surfaces', color:'#a855f7', noun:'ceiling',
-      hint:'What is overhead?',
-      ex:'Exposed timber beams, white plaster, acoustic felt…' },
+      hint:'What material and finish are overhead?',
+      ex:'Exposed Douglas fir beams, matte white plaster, wood-wool acoustic panels…' },
     { key:'floors',    label:'Floors',              group:'Surfaces', color:'#92400e', noun:'floor',
-      hint:'What is underfoot?',
-      ex:'Terrazzo, wide-plank oak, polished concrete, wool carpet…' },
+      hint:'What material and finish are underfoot?',
+      ex:'Honed terrazzo, wide-plank white oak, polished concrete, wool loop carpet…' },
     { key:'furniture', label:'Furniture',           group:'Objects',  color:'#10b981',
-      hint:'What furniture carries the mood?',
-      ex:'Low linen sofa, bentwood chairs, a single oak table…' },
+      hint:'What materials, upholstery and finishes define the furniture?',
+      ex:'Bouclé upholstery, steam-bent ash, travertine tabletop, cognac leather…' },
     { key:'plumbing',  label:'Plumbing Fixtures',   group:'Objects',  color:'#06b6d4',
-      hint:'Which plumbing fixtures appear?',
-      ex:'Freestanding stone tub, brass taps, pedestal basin…' },
+      hint:'What materials and finishes are the plumbing fixtures?',
+      ex:'Carved limestone basin, unlacquered brass taps, matte black steel…' },
     { key:'lightfix',  label:'Light Fixtures',      group:'Objects',  color:'#f59e0b',
-      hint:'Which light fixtures set the tone?',
-      ex:'Paper lantern pendant, brass sconces, arc floor lamp…' },
+      hint:'What materials and finishes are the light fixtures?',
+      ex:'Washi paper shade, opal glass globe, brushed bronze, rattan…' },
     { key:'decor',     label:'Decorative Objects',  group:'Objects',  color:'#ec4899',
-      hint:'Which decorative objects belong here?',
-      ex:'Ceramic vases, woven textiles, framed prints, candles…' },
+      hint:'What materials are the decorative objects made of?',
+      ex:'Glazed stoneware, handwoven jute, smoked glass, raw linen…' },
     { key:'greenery',  label:'Greenery',            group:'Objects',  color:'#65a30d',
-      hint:'What grows in the space?',
-      ex:'Olive tree, trailing pothos, dried grasses, moss…' },
+      hint:'Which plants and natural materials appear?',
+      ex:'Olive tree in a terracotta planter, preserved moss, dried pampas grass…' },
     { key:'animals',   label:'Animals',             group:'Objects',  color:'#f97316',
-      hint:'Which animals share the space?',
-      ex:'A sleeping cat, koi, songbirds…' },
+      hint:'Which animal-derived or animal-inspired materials appear?',
+      ex:'Sheepskin throw, wool felt, leather straps, horn inlay…' },
     { key:'misc',      label:'Miscellaneous',       group:'Objects',  color:'#64748b',
-      hint:'Anything else that belongs to the mood?',
-      ex:'Stacked books, a record player, a bowl of lemons…' },
+      hint:'Any other material reference for the space?',
+      ex:'Cork pinboard, perforated metal, recycled resin, cane webbing…' },
   ];
-  /* The space the mood board represents is typed in Session Setup, not placed
-     as a bubble, so it never contributes to the Importance Measurement. */
+  /* The space the material board represents is typed in Session Setup, not
+     placed as a bubble, so it never contributes to the Importance Measurement. */
   const PLACE_FIELD = { key:'place', label:'Space', color:'#374151',
-    hint:'What space will the mood board represent?',
+    hint:'What interior space will the material board represent?',
     ex:'A small reading room, a spa bathroom, a neighborhood café…' };
   const EP_FIELDS = [PLACE_FIELD, ...BUBBLE_TYPES];
 
@@ -703,7 +722,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const dreamsCanvas  = document.getElementById('dreams-canvas');
   const canvasLabel   = document.getElementById('canvas-label');
   const canvasEmpty   = document.getElementById('canvas-empty');
-  const emptyFeeling  = document.getElementById('empty-feeling');
   const sessionInd    = document.getElementById('session-indicator');
   const epWarning     = document.getElementById('ep-warning');
   const magnitudePanel = document.getElementById('magnitude-panel');
@@ -713,20 +731,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = [];
     if (session.name) parts.push(session.name.toUpperCase());
     if (session.place) parts.push(session.place.toUpperCase());
-    if (session.feelings.length) parts.push(session.feelings.join('  ·  ').toUpperCase());
+    if (session.sensations.length) parts.push(session.sensations.join('  ·  ').toUpperCase());
     canvasLabel.textContent = parts.length ? parts.join('  —  ') : 'CANVAS';
   }
 
   function updateEmptyState() {
     canvasEmpty.style.display = session.circles.length ? 'none' : 'flex';
-    emptyFeeling.textContent = session.feelings[0] || 'a mood';
   }
 
   function updateSessionIndicator() {
     const parts = [];
     if (session.name) parts.push(session.name);
     if (session.place) parts.push(session.place);
-    if (session.feelings.length) parts.push(`${session.feelings.length} feeling${session.feelings.length > 1 ? 's' : ''}`);
+    if (session.sensations.length) parts.push(`${session.sensations.length} sensation${session.sensations.length > 1 ? 's' : ''}`);
     sessionInd.textContent = parts.join(' · ');
   }
 
@@ -1028,10 +1045,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && selectedId) deselectAll();
   });
 
-  /* ── SESSION SETUP: FEELINGS / SPACE / NAME ── */
-  const feelingsGroup    = document.getElementById('feelings-input-group');
-  const feelingsInput    = document.getElementById('feelings-input');
-  const feelingsPills    = document.getElementById('feelings-pills');
+  /* ── SESSION SETUP: SPACE / SENSATIONS / NAME ── */
+  const sensationsGroup  = document.getElementById('sensations-input-group');
+  const sensationsInput  = document.getElementById('sensations-input');
+  const sensationsPills  = document.getElementById('sensations-pills');
   const placeGroup       = document.getElementById('place-input-group');
   const placeInput       = document.getElementById('place-input');
   const placePills       = document.getElementById('place-pills');
@@ -1039,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nameInput        = document.getElementById('name-input');
   const nameDisplay      = document.getElementById('name-display');
 
-  const setupGroups = [feelingsGroup, placeGroup, nameGroup];
+  const setupGroups = [sensationsGroup, placeGroup, nameGroup];
 
   /* Opens one Session Setup input (closing the others), or closes it if show is false */
   function showSetupInput(group, input, show) {
@@ -1064,17 +1081,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  wireSetupInput('btn-feelings', feelingsGroup, feelingsInput, 'feelings-confirm', 'feelings-cancel', () => {
-    const tags = feelingsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+  wireSetupInput('btn-sensations', sensationsGroup, sensationsInput, 'sensations-confirm', 'sensations-cancel', () => {
+    const tags = sensationsInput.value.split(',').map(s => s.trim()).filter(Boolean);
     if (!tags.length) return;
-    session.feelings = tags;
-    renderPills(feelingsPills, tags);
-    emptyFeeling.textContent = tags[0];
+    session.sensations = tags;
+    renderPills(sensationsPills, tags);
     updateCanvasLabel();
     updateSessionIndicator();
   });
 
-  /* The space the mood board represents: typed here instead of placed as a bubble */
+  /* The space the material board represents: typed here instead of placed as a bubble */
   wireSetupInput('btn-place', placeGroup, placeInput, 'place-confirm', 'place-cancel', () => {
     const val = placeInput.value.trim();
     if (!val) return;
@@ -1084,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSessionIndicator();
   });
 
-  /* The student's name: shown with the other setup inputs in the canvas label (upper left) */
+  /* The name of the person(s) being designed for: shown with the other setup inputs in the canvas label (upper left) */
   wireSetupInput('btn-name', nameGroup, nameInput, 'name-confirm', 'name-cancel', () => {
     const val = nameInput.value.trim();
     if (!val) return;
@@ -1172,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update EP sidebar session summary
     const epName     = document.getElementById('ep-name-display');
     const epPlace    = document.getElementById('ep-place-display');
-    const epPills    = document.getElementById('ep-feelings-pills');
+    const epPills    = document.getElementById('ep-sensations-pills');
     const epCount    = document.getElementById('ep-circle-count');
 
     if (session.name) {
@@ -1183,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     epPlace.textContent = session.place ? 'Space: ' + session.place : '';
     epPlace.style.display = session.place ? 'block' : 'none';
-    renderPills(epPills, session.feelings);
+    renderPills(epPills, session.sensations);
     epCount.textContent = session.circles.length
       ? `${session.circles.length} circle${session.circles.length !== 1 ? 's' : ''} mapped`
       : '';
@@ -1274,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── EP: GENERATE EMPATHIC PROMPT ── */
   /* Prompt template:
-     [IMAGE STYLE] mood board of [SPACE],
+     [IMAGE STYLE] material board for the interior design of [SPACE],
      [WALLS] walls, [CEILINGS] ceiling, [FLOORS] floor,
      [FURNITURE], [PLUMBING FIXTURES], [LIGHT FIXTURES], [DECORATIVE OBJECTS],
        [GREENERY], [ANIMALS], [MISCELLANEOUS].
@@ -1314,8 +1330,8 @@ document.addEventListener('DOMContentLoaded', () => {
       colored.appendChild(s);
     }
 
-    seg(imageStyle + ' mood board');
-    if (vals.place) { seg(' of '); seg(vals.place, TYPE_COLORS.place); }
+    seg(imageStyle + ' material board');
+    if (vals.place) { seg(' for the interior design of '); seg(vals.place, TYPE_COLORS.place); }
     trailingGroups.forEach(group => {
       seg(',\n');
       group.forEach((item, i) => {
@@ -1326,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     seg(tail);
 
     // Build plain text for editable textarea
-    let plain = `${imageStyle} mood board` + (vals.place ? ` of ${vals.place}` : '');
+    let plain = `${imageStyle} material board` + (vals.place ? ` for the interior design of ${vals.place}` : '');
     trailingGroups.forEach(group => {
       plain += ',\n' + group.map(item => item.text).join(', ');
     });
